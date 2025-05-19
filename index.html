@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard PLTU Pulang Pisau</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <!-- Tambahkan SheetJS untuk membaca file Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+      :root {
+        --primary: #1e88e5;
+        --secondary: #3949ab;
+        --success: #43a047;
+        --danger: #e53935;
+        --warning: #fdd835;
+        --info: #00acc1;
+        --light: #f5f5f5;
+        --dark: #212121;
+        --gradient-primary: linear-gradient(45deg, #1e88e5, #3949ab);
+        --gradient-secondary: linear-gradient(45deg, #3949ab, #5e35b1);
+        --shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.1);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+          url("UP.PULPIS.jpg") no-repeat center center fixed;
+        background-size: cover;
+        color: #fff;
+      }
+
+      /* Container */
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      /* Custom Background Overlay */
+      .background-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: -1;
+      }
+
+      /* Header */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: 15px 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+
+      .logo-container {
+        display: flex;
+        align-items: center;
+      }
+
+      .logo {
+        height: 60px;
+        margin-right: 15px;
+        filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+      }
+
+      .title-container h1 {
+        font-size: 22px;
+        font-weight: 600;
+        color: #fff;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .title-container p {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+        margin: 5px 0 0;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+
+      .date-time {
+        background: var(--gradient-primary);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-align: center;
+        min-width: 180px;
+      }
+
+      .date-time .date {
+        font-weight: 600;
+        font-size: 16px;
+      }
+
+      .date-time .time {
+        font-size: 14px;
+        margin-top: 5px;
+      }
+
+      /* Upload Excel */
+      .upload-section {
+        margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 15px 20px;
+        box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        transition: all 0.3s ease;
+      }
+
+      .upload-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .upload-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
+      .upload-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .file-upload {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .file-upload-label {
+        display: flex;
+        align-items: center;
+        padding: 10px 20px;
+        background: var(--gradient-primary);
+        color: white;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+
+      .file-upload-label i {
+        margin-right: 10px;
+      }
+
+      .file-upload-label:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .file-upload input[type="file"] {
+        display: none;
+      }
+
+      .file-name {
+        margin-left: 10px;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .data-preview {
+        margin-top: 10px;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        max-height: 200px;
+        overflow-y: auto;
+        display: none;
+      }
+
+      .sheet-select {
+        padding: 8px 15px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        min-width: 150px;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+        background-repeat: no-repeat;
+        background-position-x: calc(100% - 10px);
+        background-position-y: 50%;
+      }
+
+      .sheet-select option {
+        background-color: #333;
+      }
+
+      .update-button {
+        padding: 10px 20px;
+        background: var(--gradient-secondary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .update-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .loading-spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+        margin-left: 10px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Cards */
+      .kpi-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+
+      .kpi-card {
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+
+      .kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .kpi-card .title {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .kpi-card .value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Gauges */
+      .gauge-cards {
+        display: grid;
+         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr, 1fr, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .gauge-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        height: 280px;
+      }
+
+      .gauge-title {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .gauge-container {
+        position: relative;
+        width: 100%;
+        height: 150px;
+        display: flex;
+        justify-content: center;
+        margin-bottom: 10px;
+      }
+
+      .gauge-canvas-container {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .gauge-value {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 16px;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        z-index: 10;
+      }
+
+      .gauge-target {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .gauge-actual {
+        font-size: 16px;
+        font-weight: bold;
+        color: #64ffda;
+        margin-top: 5px;
+        text-shadow: 0 0 10px rgba(100, 255, 218, 0.5);
+      }
+
+      /* Charts */
+      .charts-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .chart-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        transition: all 0.3s ease;
+        min-height: 400px;
+      }
+
+      .chart-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .chart-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 15px;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .chart-canvas {
+        position: relative;
+        height: 300px;
+        width: 100%;
+      }
+
+      /* Fuel Charts */
+      .fuel-charts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      /* Production Charts */
+      .production-charts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      /* Outage Charts */
+      .outage-chart {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        transition: all 0.3s ease;
+      }
+
+      .outage-chart:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        color: white;
+        font-size: 14px;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .toast.success {
+        background-color: var(--success);
+      }
+
+      .toast.error {
+        background-color: var(--danger);
+      }
+
+      .toast.show {
+        opacity: 1;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .header {
+          flex-direction: column;
+        }
+
+        .date-time {
+          margin-top: 15px;
+        }
+
+        .upload-container {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .gauge-cards {
+          grid-template-columns: 1fr;
+        }
+
+        .charts-container,
+        .fuel-charts,
+        .production-charts {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <div class="logo-container">
+          <img src="NPS2.png" alt="Logo PLN" class="logo" />
+          <div class="title-container"
+            <h1>INDIKATOR KINERJA PLTU PULANG PISAU</h1>
+            <p>PT PLN (Persero) Nusantara Power</p>
+          </div>
+        </div>
+        <div class="date-time">
+          <div class="date" id="current-date">09 Mei 2025</div>
+          <div class="time" id="current-time">08:58 WIB</div>
+        </div>
+      </div>
+
+      <!-- Upload Excel Section -->
+      <div class="upload-section">
+        <div class="upload-title">Upload Data Excel</div>
+        <div class="upload-container">
+          <div class="file-upload">
+            <label class="file-upload-label">
+              <i class="fas fa-file-excel"></i> Pilih File Excel
+              <input type="file" id="excel-upload" accept=".xlsx, .xls" />
+            </label>
+            <span class="file-name" id="file-name">Tidak ada file dipilih</span>
+          </div>
+          <select id="sheet-select" class="sheet-select" disabled>
+            <option value="">Pilih Sheet</option>
+          </select>
+          <button id="update-dashboard" class="update-button" disabled>
+            Update Dashboard
+            <span id="loading-spinner" class="loading-spinner"></span>
+          </button>
+        </div>
+        <div class="data-preview" id="data-preview"></div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-cards">
+        <div class="card kpi-card">
+          <div class="title">EAF</div>
+          <div class="value" id="eaf-value">100,00%</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="title">NPHR</div>
+          <div class="value" id="nphr-value">3.500 kCal/kWh</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="title">EFOR</div>
+          <div class="value" id="efor-value">0,00%</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="title">SFC</div>
+          <div class="value" id="sfc-value">0,85 g/kCal</div>
+        </div>
+      </div>
+
+      <!-- Gauge Cards -->
+      <div class="gauge-cards">
+        <div class="gauge-card">
+          <div class="gauge-title">SFC</div>
+          <div class="gauge-container">
+            <div class="gauge-canvas-container">
+              <canvas id="sfc-gauge" width="300" height="300"></canvas>
+              <div class="gauge-value" id="sfc-gauge-value">98,67%</div>
+            </div>
+          </div>
+          <div class="gauge-target">
+            Target: <span id="sfc-target">KONKIN</span>
+          </div>
+          <div class="gauge-actual">
+            KONKIN: <span id="sfc-konkin">0,6264%</span>
+          </div>
+        </div>
+        <div class="gauge-card">
+          <div class="gauge-title" id="second-gauge-title">EAF</div>
+          <div class="gauge-container">
+            <div class="gauge-canvas-container">
+              <canvas id="second-gauge" width="300" height="300"></canvas>
+              <div class="gauge-value" id="second-gauge-value">100,00%</div>
+            </div>
+          </div>
+          <div class="gauge-target">
+            Target: <span id="second-target">KONKIN</span>
+          </div>
+          <div class="gauge-actual">
+            KONKIN: <span id="second-konkin">99,93%</span>
+          </div>
+        </div>
+        <div class="gauge-card">
+          <div class="gauge-title">EFOR</div>
+          <div class="gauge-container">
+            <div class="gauge-canvas-container">
+              <canvas id="efor-gauge" width="300" height="300"></canvas>
+              <div class="gauge-value" id="efor-gauge-value">0,00%</div>
+            </div>
+          </div>
+          <div class="gauge-target">
+            Target: <span id="efor-target">KONKIN</span>
+          </div>
+          <div class="gauge-actual">
+            KONKIN: <span id="efor-konkin">2,74%</span>
+          </div>
+        </div>
+      
+
+      <!-- Charts -->
+      <div class="charts-container">
+        <div class="chart-card">
+          <div class="chart-title">KESIAPAN PEMBANGKIT UNIT</div>
+          <div class="chart-canvas">
+            <canvas id="readiness-chart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">KINERJA EFFISIENSI UNIT</div>
+          <div class="chart-canvas">
+            <canvas id="efficiency-chart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">PEMAKAIAN AIR</div>
+          <div class="chart-canvas">
+            <canvas id="water-usage-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fuel Performance Charts -->
+      <div class="fuel-charts">
+        <div class="chart-card">
+          <div class="chart-title">KINERJA BAHAN BAKAR UNIT 1</div>
+          <div class="chart-canvas">
+            <canvas id="fuel-unit1-chart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">KINERJA BAHAN BAKAR UNIT 2</div>
+          <div class="chart-canvas">
+            <canvas id="fuel-unit2-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Production Charts -->
+      <div class="production-charts">
+        <div class="chart-card">
+          <div class="chart-title">PROFIL PRODUKSI UNIT 1</div>
+          <div class="chart-canvas">
+            <canvas id="production-unit1-chart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">PROFIL PRODUKSI UNIT 2</div>
+          <div class="chart-canvas">
+            <canvas id="production-unit2-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Outage Chart -->
+      <div class="outage-chart">
+        <div class="chart-title">ALOKASI OUTAGE TAHUN 2025</div>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+          "
+        >
+          <div class="chart-canvas">
+            <canvas id="outage-unit1-chart"></canvas>
+          </div>
+          <div class="chart-canvas">
+            <canvas id="outage-unit2-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast Notification -->
+      <div id="toast" class="toast"></div>
+    </div>
+
+    <script>
+      // Chart instances
+      let readinessChart, efficiencyChart, waterUsageChart;
+      let fuelUnit1Chart, fuelUnit2Chart;
+      let productionUnit1Chart, productionUnit2Chart;
+      let outageUnit1Chart, outageUnit2Chart;
+      let sfcGauge, secondGauge, eforGauge, nphrGauge;
+
+      // Global data
+      let excelData = {};
+      let activeSheet = "";
+
+      // Update date and time
+      function updateDateTime() {
+        const now = new Date();
+        document.getElementById("current-date").textContent =
+          moment(now).format("DD MMM YYYY");
+        document.getElementById("current-time").textContent =
+          moment(now).format("HH:mm") + " WIB";
+      }
+      updateDateTime();
+      setInterval(updateDateTime, 60000);
+
+      // Show toast notification
+      function showToast(message, type) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.className = "toast " + type + " show";
+        setTimeout(() => {
+          toast.className = "toast";
+        }, 3000);
+      }
+
+      // Helper function for creating gauges
+      function createGauge(elementId, value, color, maxValue = 100) {
+        const canvas = document.getElementById(elementId);
+        if (!canvas) {
+          console.error(`Canvas element ${elementId} not found`);
+          return null;
+        }
+
+        const ctx = canvas.getContext("2d");
+        const gaugeValue = Math.min(value, maxValue);
+
+        return new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            datasets: [
+              {
+                data: [gaugeValue, maxValue - gaugeValue],
+                backgroundColor: [color, "rgba(255, 255, 255, 0.1)"],
+                borderWidth: 0,
+                circumference: 270,
+                rotation: 225,
+                cutout: "70%",
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+              animateRotate: true,
+              animateScale: true,
+              duration: 1000,
+            },
+            plugins: {
+              legend: {
+                display: false,
+              },
+              tooltip: {
+                enabled: false,
+              },
+            },
+          },
+        });
+      }
+
+      // Helper function for common chart options
+      function getCommonChartOptions() {
+        return {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            intersect: false,
+            mode: "index",
+          },
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: {
+                color: "white",
+                boxWidth: 12,
+                font: {
+                  size: 11,
+                },
+                usePointStyle: true,
+              },
+            },
+            tooltip: {
+              backgroundColor: "rgba(255, 255, 255, 0.95)",
+              titleColor: "#333",
+              bodyColor: "#333",
+              borderColor: "#ddd",
+              borderWidth: 1,
+              padding: 12,
+              displayColors: true,
+              cornerRadius: 8,
+              callbacks: {
+                label: function (context) {
+                  return context.dataset.label + ": " + context.parsed.y;
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false,
+              },
+              ticks: {
+                color: "rgba(255, 255, 255, 0.8)",
+                font: {
+                  size: 11,
+                },
+              },
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: "rgba(255, 255, 255, 0.1)",
+              },
+              ticks: {
+                color: "rgba(255, 255, 255, 0.8)",
+                font: {
+                  size: 11,
+                },
+              },
+            },
+          },
+        };
+      }
+
+      // Initialize Charts
+      function initCharts() {
+        try {
+          // Create gauges with correct variable names
+          sfcGauge = createGauge("sfc-gauge", 98.67, "#8e24aa");
+          secondGauge = createGauge("second-gauge", 100, "#43a047");
+          eforGauge = createGauge("efor-gauge", 2.74, "#e53935", 10); // EFOR usually has lower max
+    
+
+          // Readiness Chart
+          const readinessCtx = document
+            .getElementById("readiness-chart")
+            ?.getContext("2d");
+          if (readinessCtx) {
+            readinessChart = new Chart(readinessCtx, {
+              type: "line",
+              data: {
+                labels: [
+                  "25/04",
+                  "26/04",
+                  "27/04",
+                  "28/04",
+                  "29/04",
+                  "30/04",
+                  "01/05",
+                  "02/05",
+                  "03/05",
+                  "04/05",
+                ],
+                datasets: [
+                  {
+                    label: "EAF",
+                    data: [100, 100, 100, 100, 100, 100, 100, 100, 100, 100],
+                    borderColor: "#1e88e5",
+                    backgroundColor: "rgba(30, 136, 229, 0.2)",
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: "#ffffff",
+                    tension: 0.4,
+                    fill: true,
+                  },
+                  {
+                    label: "EFOR",
+                    data: [0, 0, 0, 0, 0, 0, 0, 2.5, 0, 0],
+                    borderColor: "#e53935",
+                     backgroundColor: "rgba(30, 136, 229, 0.2)",
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: "#ffffff",
+                    tension: 0.4,
+                    fill: true,
+                  },
+                  {
+                    label: "SOF",
+                    data: [100, 78, 89, 98, 97, 89, 12, 52.5, 93, 100],
+                    borderColor: "#00acc1",
+                     backgroundColor: "rgba(30, 136, 229, 0.2)",
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: "#ffffff",
+                    tension: 0.4,
+                    fill: true,
+                  },
+                  {
+                    label: "Sdof",
+                    data: [78, 89, 85, 98, 97, 89, 45, 52.5, 93, 76],
+                    borderColor: "#5d1ee5",
+                     backgroundColor: "rgba(30, 136, 229, 0.2)",
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: "#ffffff",
+                    tension: 0.4,
+                    fill: true,
+                  },
+                ],
+              },
+              options: {
+                ...getCommonChartOptions(),
+                scales: {
+                  ...getCommonChartOptions().scales,
+                  y: {
+                    ...getCommonChartOptions().scales.y,
+                    max: 110,
+                    title: {
+                      display: true,
+                      text: "Persentase (%)",
+                      color: "white",
+                      font: { size: 12 },
+                    },
+                  },
+                },
+              },
+            });
+          }
+
+          // Efficiency Chart
+          const efficiencyCtx = document
+            .getElementById("efficiency-chart")
+            ?.getContext("2d");
+          if (efficiencyCtx) {
+            efficiencyChart = new Chart(efficiencyCtx, {
+              type: "bar",
+              data: {
+                labels: [
+                  "26/04",
+                  "27/04",
+                  "28/04",
+                  "29/04",
+                  "30/04",
+                  "01/05",
+                  "02/05",
+                  "03/05",
+                  "04/05",
+                  "05/05",
+                ],
+                datasets: [
+                  {
+                    type: "bar",
+                    label: "NPHR Unit 1",
+                    backgroundColor: "rgba(156, 39, 176, 0.8)",
+                    borderColor: "rgba(156, 39, 176, 1)",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                  },
+                  {
+                    type: "bar",
+                    label: "NPHR Unit 2",
+                    backgroundColor: "rgba(233, 30, 99, 0.8)",
+                    borderColor: "rgba(233, 30, 99, 1)",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                  },
+                  {
+                    type: "line",
+                    label: "NCF Unit 1",                    
+                    borderColor: "#e53935",
+                    borderWidth: 3,
+                    borderDash: [10, 5],
+                    fill: false,
+                    pointRadius: 6,
+                    pointStyle: "circle",
+                  },
+                  {
+                    type: "line",
+                    label: "NCF Unit ",
+                    borderColor: "#e53935",
+                    borderWidth: 3,
+                    borderDash: [10, 5],
+                    fill: false,
+                    pointRadius: 6,
+                    pointStyle: "circle",
+                  },
+                ],
+              },
+              options: {
+                ...getCommonChartOptions(),
+                scales: {
+                  ...getCommonChartOptions().scales,
+                  y: {
+                    ...getCommonChartOptions().scales.y,
+                    min: 3000,
+                    max: 4500,
+                    title: {
+                      display: true,
+                      color: "white",
+                      font: { size: 12 },
+                    },
+                  },
+                },
+              },
+            });
+          }
+
+          // Water Usage Chart
+          const waterUsageCtx = document
+            .getElementById("water-usage-chart")
+            ?.getContext("2d");
+          if (waterUsageCtx) {
+            waterUsageChart = new Chart(waterUsageCtx, {
+              type: "line",
+              data: {
+                labels: [
+                  "26/04",
+                  "27/04",
+                  "28/04",
+                  "29/04",
+                  "30/04",
+                  "01/05",
+                  "02/05",
+                  "03/05",
+                  "04/05",
+                  "05/05",
+                ],
+                datasets: [
+                  {
+                    label: "Hotwell #1",
+                    data: [120, 115, 118, 122, 105, 125, 112, 108, 116, 120],
+                    borderColor: "#e51e1e",
+                    backgroundColor: "rgba(30, 136, 229, 0.2)",
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: "#ffffff",
+                    tension: 0.4,
+                    fill: true,
+                  },
+                  {
+                    label: "Hotwell #2",
+                    data: [110, 108, 112, 119, 102, 115, 106, 104, 111, 114],
+                    borderColor: "#00acc1",
+                    backgroundColor: "rgba(0, 172, 193, 0.2)",
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: "#ffffff",
+                    tension: 0.4,
+                    fill: true,
+                  },
+                ],
+              },
+              options: {
+                ...getCommonChartOptions(),
+                scales: {
+                  ...getCommonChartOptions().scales,
+                  y: {
+                    ...getCommonChartOptions().scales.y,
+                    title: {
+                      display: true,
+                      text: "Volume Air (m³)",
+                      color: "white",
+                      font: { size: 12 },
+                    },
+                  },
+                },
+              },
+            });
+          }
+
+          // Fuel Unit 1 Chart
+          const fuelUnit1Ctx = document
+            .getElementById("fuel-unit1-chart")
+            ?.getContext("2d");
+          if (fuelUnit1Ctx) {
+            fuelUnit1Chart = new Chart(fuelUnit1Ctx, {
+              type: "bar",
+              data: {
+                labels: [
+                  "26/04",
+                  "27/04",
+                  "28/04",
+                  "29/04",
+                  "30/04",
+                  "01/05",
+                  "02/05",
+                  "03/05",
+                  "04/05",
+                  "05/05",
+                ],
+                datasets: [
+                  {
+                    type: "bar",
+                    label: "Konsumsi Batu Bara (ton)",
+                    data: [450, 440, 450, 0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: "#9c27b0",
+                    borderColor: "#7b1fa2",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                  },
+                  {
+                    type: "line",
+                    label: "Efisiensi Pembakaran (%)",
+                    data: [95, 94, 96, 0, 0, 0, 0, 0, 0, 0],
+                    borderColor: "#43a047",
+                    borderWidth: 3,
+                    yAxisID: "y1",
+                    pointRadius: 6,
+                    pointStyle: "circle",
+                  },
+                ],
+              },
+              options: {
+                ...getCommonChartOptions(),
+                scales: {
+                  ...getCommonChartOptions().scales,
+                  y: {
+                    ...getCommonChartOptions().scales.y,
+                    title: {
+                      display: true,
+                      text: "Konsumsi (ton)",
+                      color: "white",
+                      font: { size: 12 },
+                    },
+                  },
+                  y1: {
+                    type: "linear",
+                    position: "right",
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                      display: true,
+                      text: "Efisiensi (%)",
+                      color: "white",
+                      font: { size: 12 },
+                    },
+                    ticks: {
+                      color: "rgba(255, 255, 255, 0.8)",
+                    },
+                    grid: {
+                      drawOnChartArea: false,
+                    },
+                  },
+                },
+              },
+            });
+          }
+
+          // Fuel Unit 2 Chart
+          const fuelUnit2Ctx = document
+            .getElementById("fuel-unit2-chart")
+            ?.getContext("2d");
+          if (fuelUnit2Ctx) {
+            fuelUnit2Chart = new Chart(fuelUnit2Ctx, {
+              type: "bar",
+              data: {
+                labels: [
+                  "26/04",
+                  "27/04",
+                  "28/04",
+                  "29/04",
+                  "30/04",
+                  "01/05",
+                  "02/05",
+                  "03/05",
+                  "04/05",
+                  "05/05",
+                ],
+                datasets: [
+                  {
+                    type: "bar",
+                    label: "Konsumsi Batu Bara (ton)",
+                    data: [430, 425, 435, 210, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: "#9c27b0",
+                    borderColor: "#7b1fa2",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                  },
+                  {
+                    type: "line",
+                    label: "Efisiensi Pembakaran (%)",
+                    data: [93, 92, 94, 89, 0, 0, 0, 0, 0, 0],
+                    borderColor: "#43a047",
+                    borderWidth: 3,
+                    yAxisID: "y1",
+                    pointRadius: 6,
+                    pointStyle: "circle",
+                  },
+                ],
+              },
+              options: {
+                ...getCommonChartOptions(),
+                scales: {
+                  ...getCommonChartOptions().scales,
+                  y: {
+                    ...getCommonChartOptions().scales.y,
+                    title: {
+                      display: true,
+                      text: "Konsumsi (ton)",
+                      color: "white",
+                      font: { size: 12 },
+                    },
+                  },
+                  y1: {
+                    type: "linear",
+                    position: "right",
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                      display: true,
+                      text: "Efisiensi (%)",
+                      color: "white",
+                      font: { size: 12 },
+                    },
+                    ticks: {
+                      color: "rgba(255, 255, 255, 0.8)",
+                    },
+                    grid: {
+                      drawOnChartArea: false,
+                    },
+                  },
+                },
+              },
+            });
+          }
+
+          // Production Unit 1 Chart
+          const productionUnit1Ctx = document
+            .getElementById("production-unit1-chart")
+            ?.getContext("2d");
+          if (productionUnit1Ctx) {
+            productionUnit1Chart = new Chart(productionUnit1Ctx, {
+              type: "bar",
+              data: {
+                labels: [
+                  "26/04",
+                  "27/04",
+                  "28/04",
+                  "29/04",
+                  "30/04",
+                  "01/05",
+                  "02/05",
+                  "03/05",
+                  "04/05",
+                  "05/05",
+                ],
+                datasets: [
+                  {
+                    type: "bar",
+                    label: "Produksi gross",
+                    data: [18500, 18200, 18600, 18990, 130887, 18762, 18979, 17897, 12687, 17892],
+                    backgroundColor: "#2196f3",
+                    borderColor: "#1e88e5",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                  },
+                   {
+                    type: "bar",
+                    label: "Netto",
+                    data: [10500, 9870, 8600, 11260, 12456, 7573, 9876, 7567, 78890, 0],
+                    backgroundColor: "#fa6028",
+                    borderColor: "#1e88e5",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                  },
+                  {
+                    type: "line",
+                    label: "PS+SST",
+                    data: [
+                      19000, 19000, 19000, 19000, 19000, 19000, 19000, 19000,
+                      19000, 19000,
+                    ],
+                    backgroundColor: "rgba(30, 136, 229, 0.2)",
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: "#ffffff",
+                    tension: 0.4,
+                    fill: true,
+                  },
+                ],
+              },
+              options: {
+                ...getCommonChartOptions(),
+                scales: {
+                  ...getCommonChartOptions().scales,
+                  },
+                },
+            });
+          }
+
+          // Production Unit 2 Chart
+          const productionUnit2Ctx = document
+            .getElementById("production-unit2-chart")
+            ?.getContext("2d");
+          if (productionUnit2Ctx) {
+            productionUnit2Chart = new Chart(productionUnit2Ctx, {
+              type: "bar",
+              data: {
+                labels: [
+                  "26/04",
+                  "27/04",
+                  "28/04",
+                  "29/04",
+                  "30/04",
+                  "01/05",
+                  "02/05",
+                  "03/05",
+                  "04/05",
+                  "05/05",
+                ],
+                datasets: [
+                  {
+                    type: "bar",
+                    label: "Produksi gross",
+                    data: [18500, 18200, 18600, 18990, 130887, 18762, 18979, 17897, 12687, 17892],
+                    backgroundColor: "#2196f3",
+                    borderColor: "#1e88e5",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                  },
+                   {
+                    type: "bar",
+                    label: "Netto",
+                    data: [10500, 9870, 8600, 11260, 12456, 7573, 9876, 7567, 78890, 0],
+                    backgroundColor: "#fa6028",
+                    borderColor: "#1e88e5",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                  },
+                  {
+                    type: "line",
+                    label: "PS+SST",
+                    data: [
+                      19000, 19000, 19000, 19000, 19000, 19000, 19000, 19000,
+                      19000, 19000,
+                    ],
+                    backgroundColor: "rgba(30, 136, 229, 0.2)",
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: "#ffffff",
+                    tension: 0.4,
+                    fill: true,
+                  },
+                ],
+              },
+              options: {
+                ...getCommonChartOptions(),
+                scales: {
+                  ...getCommonChartOptions().scales,
+                  },
+                },
+            });
+          }
+
+          // Outage Unit 1 Chart
+          const outageUnit1Ctx = document
+            .getElementById("outage-unit1-chart")
+            ?.getContext("2d");
+          if (outageUnit1Ctx) {
+            outageUnit1Chart = new Chart(outageUnit1Ctx, {
+              type: "bar",
+              data: {
+                labels: ["PO (jam)", "MO (jam)", "FO (jam)"],
+                datasets: [
+                  {
+                    label: "Alokasi",
+                    data: [0, 24, 336],
+                    backgroundColor: "#9c27b0",
+                    borderColor: "#7b1fa2",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                  },
+                  {
+                    label: "Realisasi",
+                    data: [0, 48, 672],
+                    backgroundColor: "#ffc107",
+                    borderColor: "#ffb300",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                  },
+                  {
+                    label: "Sisa",
+                    data: [96, 72, 1440],
+                    backgroundColor: "#4caf50",
+                    borderColor: "#43a047",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                  },
+                ],
+              },
+              options: {
+                ...getCommonChartOptions(),
+                indexAxis: "y",
+                plugins: {
+                  ...getCommonChartOptions().plugins,
+                  title: {
+                    display: true,
+                    text: "UNIT 1",
+                    color: "white",
+                    font: {
+                      size: 16,
+                      weight: "bold",
+                    },
+                  },
+                },
+                scales: {
+                  x: {
+                    beginAtZero: true,
+                    grid: {
+                      color: "rgba(255, 255, 255, 0.1)",
+                    },
+                    ticks: {
+                      color: "rgba(255, 255, 255, 0.8)",
+                      font: { size: 11 },
+                    },
+                    title: {
+                      display: true,
+                      text: "Jam",
+                      color: "white",
+                      font: { size: 12 },
+                    },
+                  },
+                  y: {
+                    grid: {
+                      display: false,
+                    },
+                    ticks: {
+                      color: "rgba(255, 255, 255, 0.8)",
+                      font: { size: 11 },
+                    },
+                  },
+                },
+              },
+            });
+          }
+
+          // Outage Unit 2 Chart
+          const outageUnit2Ctx = document
+            .getElementById("outage-unit2-chart")
+            ?.getContext("2d");
+          if (outageUnit2Ctx) {
+            outageUnit2Chart = new Chart(outageUnit2Ctx, {
+              type: "bar",
+              data: {
+                labels: ["PO (jam)", "MO (jam)", "FO (jam)"],
+                datasets: [
+                  {
+                    label: "Alokasi",
+                    data: [0, 48, 576],
+                    backgroundColor: "#9c27b0",
+                    borderColor: "#7b1fa2",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                  },
+                  {
+                    label: "Realisasi",
+                    data: [0, 72, 576],
+                    backgroundColor: "#ffc107",
+                    borderColor: "#ffb300",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                  },
+                  {
+                    label: "Sisa",
+                    data: [96, 72, 672],
+                    backgroundColor: "#4caf50",
+                    borderColor: "#43a047",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                  },
+                ],
+              },
+              options: {
+                ...getCommonChartOptions(),
+                indexAxis: "y",
+                plugins: {
+                  ...getCommonChartOptions().plugins,
+                  title: {
+                    display: true,
+                    text: "UNIT 2",
+                    color: "white",
+                    font: {
+                      size: 16,
+                      weight: "bold",
+                    },
+                  },
+                },
+                scales: {
+                  x: {
+                    beginAtZero: true,
+                    grid: {
+                      color: "rgba(255, 255, 255, 0.1)",
+                    },
+                    ticks: {
+                      color: "rgba(255, 255, 255, 0.8)",
+                      font: { size: 11 },
+                    },
+                    title: {
+                      display: true,
+                      text: "Jam",
+                      color: "white",
+                      font: { size: 12 },
+                    },
+                  },
+                  y: {
+                    grid: {
+                      display: false,
+                    },
+                    ticks: {
+                      color: "rgba(255, 255, 255, 0.8)",
+                      font: { size: 11 },
+                    },
+                  },
+                },
+              },
+            });
+          }
+
+          console.log("All charts initialized successfully");
+          showToast("Dashboard berhasil dimuat", "success");
+        } catch (error) {
+          console.error("Error initializing charts:", error);
+          showToast("Error saat memuat grafik", "error");
+        }
+      }
+
+      // Function to handle file upload
+      function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        document.getElementById("file-name").textContent = file.name;
+        document.getElementById("loading-spinner").style.display =
+          "inline-block";
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {
+              type: "array",
+              cellDates: true,
+              cellNF: true,
+              cellStyles: true,
+            });
+
+            excelData.workbook = workbook;
+            excelData.sheets = {};
+
+            const sheetSelect = document.getElementById("sheet-select");
+            sheetSelect.innerHTML = "";
+            sheetSelect.disabled = false;
+
+            const defaultOption = document.createElement("option");
+            defaultOption.value = "";
+            defaultOption.text = "Pilih Sheet";
+            sheetSelect.appendChild(defaultOption);
+
+            workbook.SheetNames.forEach((sheetName) => {
+              const option = document.createElement("option");
+              option.value = sheetName;
+              option.text = sheetName;
+              sheetSelect.appendChild(option);
+
+              const worksheet = workbook.Sheets[sheetName];
+              excelData.sheets[sheetName] = XLSX.utils.sheet_to_json(
+                worksheet,
+                { header: 1 }
+              );
+            });
+
+            document.getElementById("update-dashboard").disabled = false;
+            showToast("File Excel berhasil diupload", "success");
+          } catch (error) {
+            console.error("Error reading Excel file:", error);
+            showToast("Error membaca file Excel", "error");
+          } finally {
+            document.getElementById("loading-spinner").style.display = "none";
+          }
+        };
+
+        reader.onerror = function () {
+          showToast("Error membaca file", "error");
+          document.getElementById("loading-spinner").style.display = "none";
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+
+      // Function to handle sheet selection
+      function handleSheetSelect(event) {
+        const sheetName = event.target.value;
+        if (!sheetName) return;
+
+        activeSheet = sheetName;
+        const sheetData = excelData.sheets[sheetName];
+
+        const previewDiv = document.getElementById("data-preview");
+        previewDiv.style.display = "block";
+
+        let previewHTML =
+          "<table style='width:100%; border-collapse: collapse; color: white;'>";
+        for (let i = 0; i < Math.min(5, sheetData.length); i++) {
+          previewHTML += "<tr>";
+          for (let j = 0; j < Math.min(10, sheetData[i]?.length || 0); j++) {
+            const cell = sheetData[i][j] !== undefined ? sheetData[i][j] : "";
+            if (i === 0) {
+              previewHTML += `<th style='border: 1px solid rgba(255,255,255,0.2); padding: 5px; text-align: left;'>${cell}</th>`;
+            } else {
+              previewHTML += `<td style='border: 1px solid rgba(255,255,255,0.2); padding: 5px;'>${cell}</td>`;
+            }
+          }
+          previewHTML += "</tr>";
+        }
+        previewHTML += "</table>";
+        previewHTML +=
+          "<p style='margin-top: 10px; font-style: italic; color: rgba(255,255,255,0.7);'>Menampilkan 5 baris pertama dari data</p>";
+
+        previewDiv.innerHTML = previewHTML;
+      }
+
+      // Function to update dashboard with Excel data
+      function updateDashboardWithExcelData() {
+        if (!activeSheet || !excelData.sheets[activeSheet]) {
+          showToast("Silakan pilih sheet terlebih dahulu", "error");
+          return;
+        }
+
+        document.getElementById("loading-spinner").style.display =
+          "inline-block";
+
+        try {
+          const sheetData = excelData.sheets[activeSheet];
+          updateKPICards(sheetData);
+          updateGaugeCharts(sheetData);
+          updateCharts(sheetData);
+          showToast(
+            "Dashboard berhasil diperbarui dengan data Excel",
+            "success"
+          );
+        } catch (error) {
+          console.error("Error updating dashboard:", error);
+          showToast("Error memperbarui dashboard", "error");
+        } finally {
+          document.getElementById("loading-spinner").style.display = "none";
+        }
+      }
+
+      // Function to update KPI cards
+      function updateKPICards(sheetData) {
+        // Implementasi berdasarkan struktur Excel Anda
+        console.log("Updating KPI cards with Excel data");
+      }
+
+      // Function to update gauge charts
+      function updateGaugeCharts(sheetData) {
+        // Implementasi update gauge charts
+        console.log("Updating gauge charts with Excel data");
+      }
+
+      // Function to update charts
+      function updateCharts(sheetData) {
+        // Implementasi update semua charts
+        console.log("Updating charts with Excel data");
+      }
+
+      // Helper function to update a gauge chart
+      function updateGauge(gaugeChart, newValue) {
+        if (
+          gaugeChart &&
+          gaugeChart.data &&
+          gaugeChart.data.datasets &&
+          gaugeChart.data.datasets[0]
+        ) {
+          const maxValue =
+            gaugeChart.data.datasets[0].data[0] +
+            gaugeChart.data.datasets[0].data[1];
+          gaugeChart.data.datasets[0].data = [newValue, maxValue - newValue];
+          gaugeChart.update("active");
+        }
+      }
+
+      // Helper function to format value
+      function formatValue(value, suffix = "") {
+        if (value === undefined || value === null) return "-";
+
+        if (typeof value === "number") {
+          if (suffix === "%") {
+            return value.toFixed(2).replace(".", ",") + suffix;
+          }
+          if (value >= 1000) {
+            return value.toLocaleString("id-ID") + suffix;
+          }
+          return value.toFixed(2).replace(".", ",") + suffix;
+        }
+
+        return value + suffix;
+      }
+
+      // Initialize everything when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        // Initialize charts
+        initCharts();
+
+        // Add event listeners
+        document
+          .getElementById("excel-upload")
+          .addEventListener("change", handleFileUpload);
+        document
+          .getElementById("sheet-select")
+          .addEventListener("change", handleSheetSelect);
+        document
+          .getElementById("update-dashboard")
+          .addEventListener("click", updateDashboardWithExcelData);
+
+        // Add hover effects for cards
+        document
+          .querySelectorAll(".gauge-card, .kpi-card, .chart-card")
+          .forEach((card) => {
+            card.addEventListener("mouseenter", function () {
+              this.style.transform = "translateY(-10px)";
+              this.style.transition = "all 0.3s ease";
+            });
+
+            card.addEventListener("mouseleave", function () {
+              this.style.transform = "translateY(0)";
+              this.style.transition = "all 0.3s ease";
+            });
+          });
+
+        console.log("Dashboard initialized successfully");
+      });
+
+      // Handle window resize
+      window.addEventListener("resize", function () {
+        const charts = [
+          readinessChart,
+          efficiencyChart,
+          waterUsageChart,
+          fuelUnit1Chart,
+          fuelUnit2Chart,
+          productionUnit1Chart,
+          productionUnit2Chart,
+          outageUnit1Chart,
+          outageUnit2Chart,
+        ];
+
+        charts.forEach((chart) => {
+          if (chart) {
+            chart.resize();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
